@@ -1,0 +1,49 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --paper: #F7F5F0;
+  --paper-raised: #FCFBF8;
+  --ink: #1C1B1A;
+  --ink-soft: #4A4540;
+  --ink-faint: #9B9590;
+  --rule: #DDD8CF;
+  --red: #B0413E;
+  --red-tint: #F7E9E8;
+  --sage: #6B7F5E;
+  --sage-tint: #EAEEE5;
+  --amber: #B8843A;
+  --amber-tint: #F6EEE0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.font-serif-display { font-family: 'Source Serif 4', Georgia, serif; }
+.font-mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; }
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: var(--paper); }
+::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 0; }
+
+/* Hand-drawn circle for the score stamp */
+.score-stamp {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4.5rem;
+  height: 4.5rem;
+}
+.score-stamp svg {
+  position: absolute;
+  top: -8px; left: -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+}
