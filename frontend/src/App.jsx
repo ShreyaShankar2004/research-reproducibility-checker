@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
-const WS_BASE = API_BASE.replace('http', 'ws')
 
 const SAMPLE_PAPERS = [
   { label: 'Mistral 7B', id: '2310.06825' },
@@ -90,40 +89,54 @@ export default function App() {
   const [progress, setProgress] = useState('')
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
-  const wsRef = useRef(null)
 
   const runAnalysis = (q) => {
     setError('')
     setResult(null)
     setLoading(true)
-    setProgress('Connecting…')
+    setProgress('Waking up server, please wait up to 60 seconds...')
 
-    const ws = new WebSocket(`${WS_BASE}/ws/analyze`)
-    wsRef.current = ws
-
-    ws.onopen = () => ws.send(JSON.stringify({ query: q }))
-    ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data)
-      if (msg.type === 'progress') setProgress(msg.message)
-      else if (msg.type === 'result') { setResult(msg.data); setLoading(false) }
-      else if (msg.type === 'error') { setError(msg.message); setLoading(false) }
-    }
-    ws.onerror = () => {
-      setError('Could not reach the analysis server. Is the backend running?')
-      setLoading(false)
-    }
+    fetch(`${API_BASE}/api/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: q }),
+      signal: AbortSignal.timeout(120000)
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          throw new Error(err.detail || 'Analysis failed.')
+        }
+        return res.json()
+      })
+      .then((data) => {
+        setResult(data)
+        setLoading(false)
+      })
+      .catch((err) => {
+        if (err.name === 'TimeoutError') {
+          setError('Server took too long to respond. Please try again — it should be faster now.')
+        } else {
+          setError(err.message)
+        }
+        setLoading(false)
+      })
   }
 
   const runUpload = (file) => {
     setError('')
     setResult(null)
     setLoading(true)
-    setProgress('Reading PDF…')
+    setProgress('Reading PDF...')
 
     const formData = new FormData()
     formData.append('file', file)
 
-    fetch(`${API_BASE}/api/analyze/upload`, { method: 'POST', body: formData })
+    fetch(`${API_BASE}/api/analyze/upload`, {
+      method: 'POST',
+      body: formData,
+      signal: AbortSignal.timeout(120000)
+    })
       .then(async (res) => {
         if (!res.ok) {
           const err = await res.json().catch(() => ({}))
@@ -132,7 +145,14 @@ export default function App() {
         return res.json()
       })
       .then((data) => { setResult(data); setLoading(false) })
-      .catch((err) => { setError(err.message); setLoading(false) })
+      .catch((err) => {
+        if (err.name === 'TimeoutError') {
+          setError('Server took too long to respond. Please try again — it should be faster now.')
+        } else {
+          setError(err.message)
+        }
+        setLoading(false)
+      })
   }
 
   const handleFileChange = (e) => {
@@ -162,10 +182,10 @@ export default function App() {
             </span>
           </div>
           <h1 className="font-serif-display text-4xl md:text-5xl font-semibold leading-tight mb-2">
-            Paper Reproducibility Desk
+            Reproducibility Desk
           </h1>
           <p className="text-[var(--ink-soft)] leading-relaxed max-w-lg">
-            Submit a paper! An arXiv link or ID, a direct PDF link, or upload the PDF. A panel of
+            Submit a paper (an arXiv link, a direct PDF, or an upload) and a panel of
             automated referees will check its methodology, hunt for code, and red-pen
             anything that looks hard to reproduce.
           </p>
@@ -189,7 +209,7 @@ export default function App() {
               disabled={loading}
               className="px-5 py-2.5 bg-[var(--ink)] text-[var(--paper)] font-medium text-sm hover:bg-[var(--ink-soft)] transition disabled:opacity-40 whitespace-nowrap"
             >
-              {loading ? 'Reviewing…' : 'Submit for review'}
+              {loading ? 'Reviewing...' : 'Submit for review'}
             </button>
             <label className="px-5 py-2.5 border border-[var(--ink)] font-medium text-sm hover:bg-[var(--paper-raised)] transition cursor-pointer text-center whitespace-nowrap">
               Upload PDF
@@ -197,7 +217,7 @@ export default function App() {
             </label>
           </div>
           <div className="flex gap-4 mt-3 items-baseline flex-wrap">
-            <span className="font-mono text-xs text-[var(--ink-faint)]">Examples —</span>
+            <span className="font-mono text-xs text-[var(--ink-faint)]">Examples:</span>
             {SAMPLE_PAPERS.map((p) => (
               <button
                 key={p.id}
@@ -411,7 +431,7 @@ export default function App() {
         )}
 
         <footer className="mt-16 pt-6 border-t border-[var(--rule)] font-mono text-xs text-[var(--ink-faint)] text-center">
-          Shreya Shankar · Generated by an automated multi-agent reviewer · Not a substitute for peer review
+          Generated by an automated multi-agent reviewer · not a substitute for peer review
         </footer>
       </div>
     </div>
