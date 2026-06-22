@@ -66,7 +66,7 @@ app = FastAPI(title="Multi-Agent Research Reproducibility Checker", lifespan=lif
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://research-reproducibility-checker.onrender.com"],  # restrict in production to your frontend domain
+    allow_origins=["https://research-reproducibility-checker.vercel.app"],  # restrict in production to your frontend domain
     allow_methods=["*"],
     allow_headers=["*"],
 )
