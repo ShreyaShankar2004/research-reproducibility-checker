@@ -24,10 +24,25 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (Reproducibility-Checker/1.0; research too
 async def fetch_arxiv_metadata(arxiv_id: str) -> dict:
     """Fetch title, abstract, authors, categories from arXiv API."""
     url = f"http://export.arxiv.org/api/query?id_list={arxiv_id}"
-    async with httpx.AsyncClient(timeout=30, headers=HEADERS, follow_redirects=True) as client:
-        resp = await client.get(url)
-        resp.raise_for_status()
-
+    
+    for attempt in range(3):
+        try:
+            async with httpx.AsyncClient(timeout=30, headers=HEADERS, follow_redirects=True) as client:
+                resp = await client.get(url)
+                if resp.status_code == 429:
+                    import asyncio
+                    wait = (attempt + 1) * 5
+                    await asyncio.sleep(wait)
+                    continue
+                resp.raise_for_status()
+                break
+        except httpx.HTTPStatusError as e:
+            if attempt < 2:
+                import asyncio
+                await asyncio.sleep((attempt + 1) * 5)
+                continue
+            raise
+    
     feed = feedparser.parse(resp.text)
     if not feed.entries:
         raise ValueError(f"No paper found for arXiv ID: {arxiv_id}")
@@ -45,6 +60,7 @@ async def fetch_arxiv_metadata(arxiv_id: str) -> dict:
             f"https://arxiv.org/pdf/{arxiv_id}"
         ),
         "abs_url": f"https://arxiv.org/abs/{arxiv_id}",
+        "is_arxiv": True,
     }
 
 
