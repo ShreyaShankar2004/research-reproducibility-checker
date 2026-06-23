@@ -1,6 +1,7 @@
 # Multi-Agent Research Reproducibility Checker
 
 An agentic system that audits ML papers for reproducibility issues. It accepts **arXiv links/IDs, any direct PDF URL, or uploaded PDF files**, extracts methodology and claims, searches for code implementations, and runs a critical plausibility check (data leakage risk, missing baselines, statistical rigor, etc.), producing a structured audit report.
+- **Link**: https://research-reproducibility-checker.vercel.app  
 
 ## Supported Inputs
 - **arXiv**: paste a link (`https://arxiv.org/abs/2310.06825`) or bare ID (`2310.06825`) — uses arXiv API for clean metadata + ar5iv HTML for full text (falls back to PDF extraction if ar5iv is unavailable).
