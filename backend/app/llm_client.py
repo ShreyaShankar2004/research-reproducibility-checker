@@ -9,7 +9,7 @@ from groq import AsyncGroq
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 MODEL_LARGE = "llama-3.3-70b-versatile"   # for reasoning-heavy tasks
-MODEL_FAST = "llama-3.1-8b-instant"       # for quick extraction tasks
+MODEL_FAST = "llama-3.2-3b-preview"   # for quick extraction tasks
 
 _client = None
 
