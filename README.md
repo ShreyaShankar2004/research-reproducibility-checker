@@ -16,10 +16,10 @@ An agentic system that audits ML papers for reproducibility issues. It accepts *
 5. **Plausibility Checker** — critical LLM analysis flagging reproducibility red flags with severity ratings
 6. **Report Generator** — synthesizes everything into an executive summary + verdict
 
-100% free stack: Groq API (free LLM inference), arXiv API, GitHub API, Papers With Code API, SQLite cache.
+Stack: Groq API (free LLM inference), arXiv API, GitHub API, Papers With Code API, SQLite cache.
 
 ---
-## How It Works (for your portfolio/interviews)
+## How It Works 
 
 - **Agentic architecture**: each stage is an independent async function with a clear single responsibility, orchestrated by `orchestrator.py`. Methodology and claims extraction run in parallel via `asyncio.gather`.
 - **Streaming progress**: the frontend connects via WebSocket (`/ws/analyze`) so users see live progress ("Extracting methodology...", "Searching for code...", etc.) instead of a blank loading screen.
