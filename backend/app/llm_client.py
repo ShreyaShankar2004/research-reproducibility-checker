@@ -25,11 +25,9 @@ def get_client() -> AsyncGroq:
         _client = AsyncGroq(api_key=GROQ_API_KEY)
     return _client
 
-
 async def llm_call(prompt: str, system: str = "", model: str = MODEL_LARGE,
                     json_mode: bool = False, temperature: float = 0.2,
                     max_tokens: int | None = None) -> str:
-    """Make a single LLM call with automatic retry on rate limit."""
     import asyncio
     client = get_client()
     messages = []
@@ -42,7 +40,7 @@ async def llm_call(prompt: str, system: str = "", model: str = MODEL_LARGE,
         kwargs["response_format"] = {"type": "json_object"}
 
     if max_tokens is None:
-        max_tokens = 2000 if model == MODEL_FAST else 8000
+        max_tokens = 4000 if model == MODEL_FAST else 8000
 
     for attempt in range(3):
         try:
@@ -61,7 +59,6 @@ async def llm_call(prompt: str, system: str = "", model: str = MODEL_LARGE,
                 await asyncio.sleep(wait)
                 continue
             raise
-
 
 async def llm_json_call(prompt: str, system: str = "", model: str = MODEL_LARGE,
                          temperature: float = 0.2, max_tokens: int | None = None) -> dict:
