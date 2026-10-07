@@ -1,10 +1,11 @@
 """
-LLM Client - wraps Groq API (free tier, fast Llama 3.3 70B / Llama 3.1 8B)
+LLM Client - wraps Groq API
 Get a free API key at https://console.groq.com/keys
 """
 import os
 import re
 import json
+import asyncio
 from groq import AsyncGroq
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
@@ -25,10 +26,10 @@ def get_client() -> AsyncGroq:
         _client = AsyncGroq(api_key=GROQ_API_KEY)
     return _client
 
+
 async def llm_call(prompt: str, system: str = "", model: str = MODEL_LARGE,
                     json_mode: bool = False, temperature: float = 0.2,
                     max_tokens: int | None = None) -> str:
-    import asyncio
     client = get_client()
     messages = []
     if system:
@@ -40,7 +41,7 @@ async def llm_call(prompt: str, system: str = "", model: str = MODEL_LARGE,
         kwargs["response_format"] = {"type": "json_object"}
 
     if max_tokens is None:
-        max_tokens = 4000 if model == MODEL_FAST else 8000
+        max_tokens = 8000
 
     for attempt in range(3):
         try:
@@ -60,16 +61,18 @@ async def llm_call(prompt: str, system: str = "", model: str = MODEL_LARGE,
                 continue
             raise
 
+
 async def llm_json_call(prompt: str, system: str = "", model: str = MODEL_LARGE,
                          temperature: float = 0.2, max_tokens: int | None = None) -> dict:
-    """LLM call that returns parsed JSON. Robust to leading/trailing junk and retries on failure."""
+    if max_tokens is None:
+        max_tokens = 8000
+
     text = await llm_call(prompt, system=system, model=model,
                            json_mode=True, temperature=temperature, max_tokens=max_tokens)
     result = _try_parse_json(text)
     if result is not None:
         return result
 
-    # Retry once without json_mode (some models echo content before JSON in strict mode)
     text = await llm_call(prompt, system=system, model=model,
                            json_mode=False, temperature=temperature, max_tokens=max_tokens)
     result = _try_parse_json(text)
@@ -80,21 +83,20 @@ async def llm_json_call(prompt: str, system: str = "", model: str = MODEL_LARGE,
 
 
 def _try_parse_json(text: str) -> dict | None:
-    """Try direct parse, then extract the outermost {...} block."""
+    if not text:
+        return None
     text = text.strip()
     try:
         return json.loads(text)
     except json.JSONDecodeError:
         pass
 
-    # Strip markdown fences
     cleaned = re.sub(r'^```(?:json)?\s*|\s*```$', '', text, flags=re.MULTILINE).strip()
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError:
         pass
 
-    # Extract the last balanced {...} block (handles leading prose/echoed content)
     start = text.rfind('{')
     if start == -1:
         return None
