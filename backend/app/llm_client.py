@@ -9,7 +9,7 @@ from groq import AsyncGroq
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 MODEL_LARGE = "llama-3.3-70b-versatile"
-MODEL_FAST = "meta-llama/llama-4-scout-17b-16e-instruct"
+MODEL_FAST = "llama-3.3-70b-versatile"
 
 _client = None
 
