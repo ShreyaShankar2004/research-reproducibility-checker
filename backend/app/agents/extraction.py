@@ -151,7 +151,7 @@ async def extract_title_abstract(content: str) -> dict:
 
 
 async def extract_methodology(content: str) -> dict:
-    prompt = METHODOLOGY_PROMPT.format(content=content[:5000])
+    prompt = METHODOLOGY_PROMPT.format(content=content[:8000])
     return await llm_json_call(prompt, model=MODEL_FAST, max_tokens=2000)
 
 
