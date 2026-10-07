@@ -8,8 +8,8 @@ import json
 from groq import AsyncGroq
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-MODEL_LARGE = "llama-3.3-70b-versatile"
-MODEL_FAST = "llama-3.3-70b-versatile"
+MODEL_LARGE = "openai/gpt-oss-120b"
+MODEL_FAST = "openai/gpt-oss-20b"
 
 _client = None
 
