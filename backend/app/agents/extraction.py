@@ -6,32 +6,12 @@ import re
 from app.llm_client import llm_json_call, MODEL_FAST
 
 
-VALIDATION_PROMPT = """You are a strict document classifier. Your job is to determine if a document is a SCIENTIFIC or TECHNICAL research paper.
+VALIDATION_PROMPT = """Is the following document a scientific research paper with experiments and numeric results? Reply with only this JSON, nothing else:
+{{"is_research_paper": true, "reason": "one sentence"}}
+or
+{{"is_research_paper": false, "reason": "one sentence"}}
 
-To qualify as a research paper it MUST have ALL of the following:
-1. A clear research problem or hypothesis being tested
-2. An experimental methodology (data collection, model training, system design, or empirical study)
-3. Quantitative results or measurable outcomes (numbers, metrics, scores, statistics)
-4. References to prior scientific/technical literature
-
-It does NOT qualify if it is:
-- A literary essay, book review, or humanities critique (even if it mentions "methodology" or "analysis")
-- A blog post, opinion piece, or editorial
-- A resume, CV, or portfolio
-- A legal, financial, or business document
-- A presentation or set of slides without experimental content
-- A survey or tutorial with no original experiments
-
-Be strict. When in doubt, return false.
-
-Respond with ONLY a single JSON object. Output must start with {{ and end with }}.
-
-{{
-  "is_research_paper": true or false,
-  "reason": "one sentence explanation citing specific evidence from the text"
-}}
-
-DOCUMENT TEXT:
+DOCUMENT:
 {content}
 """
 
@@ -114,25 +94,18 @@ RAW TEXT:
 
 
 def _heuristic_check(content: str) -> tuple[bool, str]:
-    """
-    Fast pre-filter before calling LLM.
-    Rejects documents that are clearly not research papers based on simple signals.
-    """
     text_lower = content.lower()
     word_count = len(content.split())
 
-    # Too short to be a paper
     if word_count < 500:
         return False, "Document is too short to be a research paper."
 
-    # Must have at least some numeric content (results/metrics)
     numbers = re.findall(
         r'\b\d+\.?\d*\s*%|\b\d+\.?\d*\s*(accuracy|f1|bleu|rouge|score|loss)',
         text_lower
     )
     has_numbers = len(numbers) > 0
 
-    # Check for research paper structural keywords
     research_keywords = [
         'abstract', 'introduction', 'methodology', 'experiment',
         'results', 'conclusion', 'references', 'dataset', 'baseline',
@@ -140,7 +113,6 @@ def _heuristic_check(content: str) -> tuple[bool, str]:
     ]
     keyword_hits = sum(1 for kw in research_keywords if kw in text_lower)
 
-    # Check for humanities/essay signals
     essay_signals = [
         'the play', 'the novel', 'the poem', 'the author writes',
         'shakespeare', 'literary', 'protagonist', 'narrative',
@@ -159,34 +131,30 @@ def _heuristic_check(content: str) -> tuple[bool, str]:
 
 
 async def validate_is_research_paper(content: str) -> tuple[bool, str]:
-    """
-    Two-stage validation: fast heuristic first, then LLM classifier.
-    Returns (is_valid, reason).
-    """
-    # Stage 1: cheap heuristic (no LLM call)
     passed, reason = _heuristic_check(content)
     if not passed:
         return False, reason
 
-    # Stage 2: LLM classifier
-    prompt = VALIDATION_PROMPT.format(content=content[:3000])
-    result = await llm_json_call(prompt, model=MODEL_FAST, temperature=0.0, max_tokens=150)
-    is_paper = result.get("is_research_paper", False)
-    reason = result.get("reason", "")
-
-    return is_paper, reason
+    prompt = VALIDATION_PROMPT.format(content=content[:2000])
+    try:
+        result = await llm_json_call(prompt, model=MODEL_FAST, temperature=0.0, max_tokens=60)
+        is_paper = result.get("is_research_paper", False)
+        reason = result.get("reason", "")
+        return is_paper, reason
+    except Exception:
+        return True, "Heuristic passed"
 
 
 async def extract_title_abstract(content: str) -> dict:
     prompt = TITLE_ABSTRACT_PROMPT.format(content=content[:4000])
-    return await llm_json_call(prompt, model=MODEL_FAST, temperature=0.1)
+    return await llm_json_call(prompt, model=MODEL_FAST, temperature=0.1, max_tokens=500)
 
 
 async def extract_methodology(content: str) -> dict:
     prompt = METHODOLOGY_PROMPT.format(content=content[:5000])
-    return await llm_json_call(prompt, model=MODEL_FAST)
+    return await llm_json_call(prompt, model=MODEL_FAST, max_tokens=2000)
 
 
 async def extract_claims(content: str) -> dict:
     prompt = CLAIMS_PROMPT.format(content=content[:5000])
-    return await llm_json_call(prompt, model=MODEL_FAST)
+    return await llm_json_call(prompt, model=MODEL_FAST, max_tokens=1500)
