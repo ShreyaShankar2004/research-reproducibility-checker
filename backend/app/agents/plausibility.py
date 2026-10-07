@@ -57,4 +57,4 @@ async def check_plausibility(methodology: dict, claims: dict, code_info: dict) -
         claims=str(claims),
         code_info=str(code_info),
     )
-    return await llm_json_call(prompt, model=MODEL_FAST, temperature=0.3, max_tokens=3500)
+    return await llm_json_call(prompt, model=MODEL_FAST, temperature=0.3, max_tokens=4000)

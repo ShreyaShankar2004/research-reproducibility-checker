@@ -41,4 +41,4 @@ async def generate_report(title: str, abstract: str, methodology: dict,
         code_info=str(code_info),
         issues=str(issues),
     )
-    return await llm_json_call(prompt, model=MODEL_FAST, temperature=0.3, max_tokens=3500)
+    return await llm_json_call(prompt, model=MODEL_FAST, temperature=0.3, max_tokens=3000)
