@@ -28,20 +28,13 @@ def get_client() -> AsyncGroq:
 
 
 async def llm_call(prompt: str, system: str = "", model: str = MODEL_LARGE,
-                    json_mode: bool = False, temperature: float = 0.2,
-                    max_tokens: int | None = None) -> str:
+                    temperature: float = 0.2, max_tokens: int = 4000) -> str:
+    """Make a single LLM call, returns text content. No json_mode — we parse ourselves."""
     client = get_client()
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
     messages.append({"role": "user", "content": prompt})
-
-    kwargs = {}
-    if json_mode:
-        kwargs["response_format"] = {"type": "json_object"}
-
-    if max_tokens is None:
-        max_tokens = 8000
 
     for attempt in range(3):
         try:
@@ -50,42 +43,33 @@ async def llm_call(prompt: str, system: str = "", model: str = MODEL_LARGE,
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                **kwargs
             )
             return resp.choices[0].message.content
         except Exception as e:
             error_str = str(e)
             if '429' in error_str and attempt < 2:
-                wait = (attempt + 1) * 2
-                await asyncio.sleep(wait)
+                await asyncio.sleep((attempt + 1) * 2)
                 continue
             raise
 
 
 async def llm_json_call(prompt: str, system: str = "", model: str = MODEL_LARGE,
-                         temperature: float = 0.2, max_tokens: int | None = None) -> dict:
-    if max_tokens is None:
-        max_tokens = 8000
-
+                         temperature: float = 0.2, max_tokens: int = 4000) -> dict:
+    """LLM call that returns parsed JSON."""
     text = await llm_call(prompt, system=system, model=model,
-                           json_mode=True, temperature=temperature, max_tokens=max_tokens)
+                           temperature=temperature, max_tokens=max_tokens)
     result = _try_parse_json(text)
     if result is not None:
         return result
-
-    text = await llm_call(prompt, system=system, model=model,
-                           json_mode=False, temperature=temperature, max_tokens=max_tokens)
-    result = _try_parse_json(text)
-    if result is not None:
-        return result
-
     raise ValueError(f"LLM did not return valid JSON. Raw output: {text[:500]}")
 
 
 def _try_parse_json(text: str) -> dict | None:
+    """Try direct parse, strip fences, then extract outermost {...} block."""
     if not text:
         return None
     text = text.strip()
+
     try:
         return json.loads(text)
     except json.JSONDecodeError:
