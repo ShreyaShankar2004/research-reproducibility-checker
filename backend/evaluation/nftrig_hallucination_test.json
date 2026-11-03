@@ -1,0 +1,15 @@
+
+{
+  "input": "Evaluate the reproducibility of NFTrig. Summarise its implementation, testing approach, reported results and limitations.",
+  "actual_output": "NFTrig is a web-based educational application combining trigonometry and blockchain technology. Its smart contract was deployed on the Ethereum mainnet, and the paper reports that the application improved student examination scores by 98.7% across 500 participants.",
+  "retrieval_context": [
+    "The NFTrig project is based around the creation of a web-based game application that allows interaction of NFTs (non-fungible token) with trigonometric function designs.",
+    "The primary development languages include HTML, CSS (Bootstrap 5), and JavaScript as well as Solidity for smart contract creation. The application integrates with MetaMask and OpenSea and is hosted on Moralis utilizing their Web3 API.",
+    "Basic unit testing of different elements was initially conducted to ensure easy navigation between front end pages. Three user cases were devised: a user browsing NFTrigs, a user making a purchase, and a user combining NFTrigs. All assumptions and expected actions expected from the system were listed and analyzed through testing. Further, testing through some edge cases were also pursued.",
+    "Thorough testing was completed for basic accessibility features.",
+    "Currently, the application works as intended, however future plans involve rigorous testing with JavaScript code and external APIs (if any are devised).",
+    "The initial portion of this project had the front end website hosted on a local Augustana College server and the back end smart contract hosted on the Polygon test net. This allowed initial testing and validation that the smart contract operated as expected, as well as give time and opportunity to discover security vulnerabilities.",
+    "The project successfully allowed the exploration and creation of applying NFT and block chain technology to math education. Although preliminary in use and nature, this project allows for initial project creation as a boiler plate project. The smart contract is currently deployed on the Polygon testnet and can be interacted with using test Matic.",
+    "The goal for this project was a working Beta demo that shows application functionality, and correct smart contract execution."
+  ]
+}

@@ -1,0 +1,4 @@
+[
+  {"id":"grounded-summary-001","input":"Summarise the model, dataset and reported result.","retrieval_context":["The paper evaluates ResNet-50 on CIFAR-10.","It reports 91.2% test accuracy using SGD for 100 epochs."],"expected_output":"The paper evaluates ResNet-50 on CIFAR-10 and reports 91.2% test accuracy after 100 epochs of SGD training.","tags":["groundedness","relevance"]},
+  {"id":"missing-details-002","input":"What random seed and split methodology did the authors use?","retrieval_context":["The paper reports test accuracy but does not specify the random seed or train-validation split."],"expected_output":"The random seed and train-validation split are not specified in the provided paper text.","tags":["abstention","hallucination-risk"]}
+]
