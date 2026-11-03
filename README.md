@@ -30,3 +30,4 @@ An agentic system that audits ML research papers for reproducibility issues. It 
 - **Rate limit handling**: automatic retry with exponential backoff on 429 errors — pipeline recovers silently without surfacing errors to the user.
 - **Grounded plausibility checks**: the plausibility agent receives the *extracted* methodology/claims/code data (not raw paper text) and reasons over 7 specific red-flag categories — data leakage, missing baselines, statistical rigor, compute transparency, dataset availability, code availability, implausible results.
 - **Document validation**: two-stage guard before the pipeline runs — cheap heuristic filter first (no LLM cost), then LLM classifier only if heuristic passes. Rejects essays, resumes, and non-research PDFs with a clear error message.
+#.\.venv312\Scripts\Activate.ps1

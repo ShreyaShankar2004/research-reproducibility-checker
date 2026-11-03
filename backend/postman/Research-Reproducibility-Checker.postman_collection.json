@@ -1,0 +1,25 @@
+{
+  "info": {
+    "name": "Research Reproducibility Checker API",
+    "description": "API smoke and contract tests. Set baseUrl to http://localhost:8000. Analyze calls invoke the live pipeline unless cached.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [{"key": "baseUrl", "value": "http://localhost:8000"}],
+  "item": [
+    {
+      "name": "Health check",
+      "request": {"method": "GET", "url": "{{baseUrl}}/"},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('HTTP 200', function () { pm.response.to.have.status(200); });", "pm.test('Service status is ok', function () { pm.expect(pm.response.json().status).to.eql('ok'); });"]}}]
+    },
+    {
+      "name": "Analyze paper (live Groq call if not cached)",
+      "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"query\": \"2310.06825\",\n  \"force_refresh\": false\n}"}, "url": "{{baseUrl}}/api/analyze"},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('HTTP 200', function () { pm.response.to.have.status(200); });", "pm.test('Response has paper and report', function () { var body = pm.response.json(); pm.expect(body).to.have.property('paper'); pm.expect(body).to.have.property('report'); });"]}}]
+    },
+    {
+      "name": "Reject non-PDF upload (select a non-PDF file)",
+      "request": {"method": "POST", "body": {"mode": "formdata", "formdata": [{"key": "file", "type": "file", "src": ""}]}, "url": "{{baseUrl}}/api/analyze/upload"},
+      "event": [{"listen": "test", "script": {"type": "text/javascript", "exec": ["pm.test('Rejects unsupported file with 400', function () { pm.response.to.have.status(400); });"]}}]
+    }
+  ]
+}

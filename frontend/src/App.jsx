@@ -420,6 +420,32 @@ export default function App() {
                 ))}
               </div>
             </Section>
+
+            {result.quality_screen && (
+              <Section number="06" title="AI quality & safety screen">
+                <div className="grid sm:grid-cols-2 gap-5 text-sm">
+                  <div className="p-4 border border-[var(--rule)] bg-[var(--paper-raised)]">
+                    <div className="font-mono text-xs uppercase tracking-wider text-[var(--ink-faint)] mb-2">Summary evidence overlap</div>
+                    <div className="font-serif-display text-3xl font-semibold">
+                      {Math.round((result.quality_screen.summary_token_groundedness || 0) * 100)}%
+                    </div>
+                    <p className="text-xs text-[var(--ink-soft)] mt-1">Lexical overlap with extracted paper text; not a semantic truth score.</p>
+                  </div>
+                  <div className="p-4 border border-[var(--rule)] bg-[var(--paper-raised)]">
+                    <div className="font-mono text-xs uppercase tracking-wider text-[var(--ink-faint)] mb-2">Prompt-injection indicators</div>
+                    <div className="font-serif-display text-3xl font-semibold">{result.quality_screen.prompt_injection_indicators?.length || 0}</div>
+                    <p className="text-xs text-[var(--ink-soft)] mt-1">Common suspicious instruction patterns found in the paper text.</p>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <div className="font-mono text-xs uppercase tracking-wider text-[var(--ink-faint)] mb-2">PII categories in generated summary</div>
+                    <p>{result.quality_screen.pii_categories_in_summary?.length ? result.quality_screen.pii_categories_in_summary.join(', ') : 'No configured PII patterns detected.'}</p>
+                    <div className="font-mono text-xs uppercase tracking-wider text-[var(--ink-faint)] mt-4 mb-2">Terms to review for possible unsupported claims</div>
+                    <p className="leading-relaxed">{result.quality_screen.unsupported_terms_for_review?.length ? result.quality_screen.unsupported_terms_for_review.slice(0, 30).join(', ') : 'No unsupported terms flagged by the lexical screen.'}</p>
+                    <p className="text-xs text-[var(--ink-faint)] mt-3">{result.quality_screen.limitations}</p>
+                  </div>
+                </div>
+              </Section>
+            )}
           </article>
         )}
 

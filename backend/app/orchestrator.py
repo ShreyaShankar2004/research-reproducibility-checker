@@ -10,6 +10,7 @@ from app.agents.extraction import extract_methodology, extract_claims, extract_t
 from app.agents.code_discovery import discover_code
 from app.agents.plausibility import check_plausibility
 from app.agents.report import generate_report
+from app.quality_checks import detect_pii, detect_prompt_injection, find_unsupported_terms, token_groundedness
 
 
 async def run_pipeline(query: str = None, pdf_bytes: bytes = None, progress_callback=None) -> dict:
@@ -64,6 +65,17 @@ async def run_pipeline(query: str = None, pdf_bytes: bytes = None, progress_call
         paper["title"], paper["abstract"], methodology, claims, code_info, issues
     )
 
+    # Lightweight safety/grounding screening of the untrusted paper text and final summary.
+    # These are review signals, not definitive prompt-injection or hallucination detection.
+    executive_summary = report.get("executive_summary", "") if isinstance(report, dict) else ""
+    quality_screen = {
+        "prompt_injection_indicators": detect_prompt_injection(paper.get("fulltext", "")),
+        "pii_categories_in_summary": detect_pii(executive_summary),
+        "summary_token_groundedness": token_groundedness(executive_summary, paper.get("fulltext", "")),
+        "unsupported_terms_for_review": find_unsupported_terms(executive_summary, paper.get("fulltext", "")),
+        "limitations": "Heuristic screening only; review flagged content manually. A low overlap score is not proof of hallucination.",
+    }
+
     await emit("Done.")
 
     return {
@@ -82,4 +94,5 @@ async def run_pipeline(query: str = None, pdf_bytes: bytes = None, progress_call
         "code_info": code_info,
         "plausibility": issues,
         "report": report,
+        "quality_screen": quality_screen,
     }

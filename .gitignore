@@ -11,3 +11,13 @@ dist/
 
 # Secrets
 .env
+# Quality engineering test artifacts
+backend/.pytest_cache/
+backend/**/__pycache__/
+backend/reports/*.xml
+backend/.env
+
+.venv312/
+
+backend/.deepeval/
+backend/evaluation/nftrig_fulltext.txt
