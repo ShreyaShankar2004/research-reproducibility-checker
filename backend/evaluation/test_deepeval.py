@@ -10,17 +10,23 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-from deepeval import assert_test
-from deepeval.metrics import AnswerRelevancyMetric, FaithfulnessMetric
-from deepeval.test_case import LLMTestCase
-
-from evaluation.groq_judge import GroqJudge
-
+# Only import DeepEval when explicitly running the optional LLM evaluations.
+RUN_LLM_EVAL = (
+    os.getenv("RUN_LLM_EVAL") == "1"
+    and bool(os.getenv("GROQ_API_KEY"))
+)
 
 pytestmark = pytest.mark.skipif(
-    os.getenv("RUN_LLM_EVAL") != "1" or not os.getenv("GROQ_API_KEY"),
+    not RUN_LLM_EVAL,
     reason="Set RUN_LLM_EVAL=1 and GROQ_API_KEY to run optional live judge tests.",
 )
+
+if RUN_LLM_EVAL:
+    from deepeval import assert_test
+    from deepeval.metrics import AnswerRelevancyMetric, FaithfulnessMetric
+    from deepeval.test_case import LLMTestCase
+
+    from evaluation.groq_judge import GroqJudge
 
 
 @pytest.fixture(scope="module")
@@ -57,6 +63,7 @@ def test_reproducibility_summary_is_relevant_and_grounded(groq_judge):
             FaithfulnessMetric(threshold=0.7, model=groq_judge),
         ],
     )
+
 
 def test_nftrig_correct_answer_is_faithful(groq_judge):
     path = Path(__file__).with_name("nftrig_eval.json")
