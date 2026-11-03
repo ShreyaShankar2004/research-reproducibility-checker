@@ -234,4 +234,6 @@ Frontend and backend deployments are independent. After merging backend changes 
 
 ## License
 
-Add the applicable license and attribution details before distributing or reusing this project.
+Copyright © 2026 Shreya Shankar. All rights reserved.
+
+This repository is published for portfolio and demonstration purposes only. No permission is granted to copy, modify, distribute, or commercially use this code without prior written permission from the author.
